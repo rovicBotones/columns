@@ -10,22 +10,6 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: 'Rovic Joy Botones | Full-Stack Software Engineer',
   description: 'Portfolio of Rovic Joy Botones, a full-stack software engineer working with .NET, React Native, React, and L3 application support.',
-  icons: {
-    icon: [
-      {
-        url: '/column-removebg-preview.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/column-removebg-preview.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/column-removebg-preview.png',
-        type: 'image/svg+xml',
-      },
-    ],
-  },
 }
 
 export default function RootLayout({
