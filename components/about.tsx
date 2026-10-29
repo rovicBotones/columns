@@ -1,40 +1,31 @@
+import { Check } from "lucide-react"
+
+const strengths = [
+  "Developing and maintaining full-stack applications",
+  "Building cross-platform mobile experiences with React Native",
+  "Investigating complex production issues as an L3 support engineer",
+]
+
 export default function About() {
   return (
     <section id="about" className="py-20 md:py-28">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid md:grid-cols-2 gap-12 items-center">
-          <div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6 leading-tight">About Columns</h2>
-            <p className="text-muted-foreground leading-relaxed mb-4">
-              Founded since 2025, dedicated to driving innovation in mobile development, web development, and automation. 
-              We partner with forward-thinking companies to deliver strategic, technology-driven solutions that accelerate growth and create measurable impact.
-            </p>
-            <p className="text-muted-foreground leading-relaxed mb-6">
-              Our multidisciplinary team blends expertise in design, engineering,
-              and strategy to craft solutions that engage users while delivering real business value.
-            </p>
-            <ul className="space-y-3">
-              <li className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span className="text-foreground">Cutting-edge mobile and web applications</span>
+      <div className="mx-auto grid max-w-6xl gap-12 px-4 sm:px-6 md:grid-cols-[0.75fr_1.25fr] lg:px-8">
+        <div>
+          <p className="text-sm font-semibold uppercase tracking-[0.2em] text-gray-500">A little about me</p>
+          <h2 className="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">Engineering with a support mindset.</h2>
+        </div>
+        <div>
+          <p className="text-lg leading-8 text-muted-foreground">
+            I’m a software engineer with three years of experience spanning application development and L3 production support. I work across .NET services, React web interfaces, and React Native mobile apps, helping take features from implementation through troubleshooting and ongoing improvement.
+          </p>
+          <ul className="mt-8 space-y-4">
+            {strengths.map((strength) => (
+              <li key={strength} className="flex items-start gap-3 text-foreground">
+                <span className="mt-0.5 rounded-full bg-gray-100 p-1 text-foreground"><Check size={16} /></span>
+                <span>{strength}</span>
               </li>
-              <li className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span className="text-foreground">Streamlined automation for efficient workflows</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full"></div>
-                <span className="text-foreground">Data-driven, results-focused approach</span>
-              </li>
-            </ul>
-          </div>
-          {/* <div className="bg-muted rounded-lg h-96 flex items-center justify-center">
-            <img
-              src="/modern-office-collaboration.png"
-              alt="VisionCorp team"
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div> */}
+            ))}
+          </ul>
         </div>
       </div>
     </section>
