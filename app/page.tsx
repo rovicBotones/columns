@@ -4,14 +4,16 @@ import About from "@/components/about"
 import Services from "@/components/services"
 import Footer from "@/components/footer"
 import Works from "@/components/works"
+import ExperienceTimeline from "@/components/experience-timeline"
 
 export default function Home() {
   return (
     <main className="bg-background">
       <Header />
       <Hero />
-      <Services />
+      <ExperienceTimeline />
       <Works />
+      <Services />
       <About />
       <Footer />
     </main>

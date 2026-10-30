@@ -1,12 +1,10 @@
 import Image from "next/image"
-import { ArrowUpRight } from "lucide-react"
 
 const projects = [
   {
     title: "PB Post Machine",
     description: "A workflow tool built to streamline content production and simplify the team’s daily publishing process.",
     image: "/pb-postmachine.png",
-    href: "https://pb-postmachine.vercel.app/",
     stack: ["React Router 7", "TypeScript", "PostgreSQL", "Supabase", "ShadCN"],
   },
 ]
@@ -25,16 +23,13 @@ export default function Works() {
         <div className="mt-10 grid gap-8 md:grid-cols-2">
           {projects.map((project) => (
             <article key={project.title} className="overflow-hidden rounded-2xl border border-gray-200 bg-card shadow-sm">
-              <a href={project.href} target="_blank" rel="noreferrer" aria-label={`Visit ${project.title}`} className="group relative block aspect-[16/9] overflow-hidden bg-gray-100">
-                <Image src={project.image} alt={`${project.title} application preview`} fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover transition duration-500 group-hover:scale-105" />
-              </a>
+              <div className="relative aspect-[16/9] overflow-hidden bg-gray-100">
+                <Image src={project.image} alt={`${project.title} application preview`} fill sizes="(max-width: 768px) 100vw, 600px" className="object-cover" />
+              </div>
               <div className="p-6 md:p-7">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h3 className="text-xl font-semibold">{project.title}</h3>
-                    <p className="mt-2 leading-7 text-muted-foreground">{project.description}</p>
-                  </div>
-              <a href={project.href} target="_blank" rel="noreferrer" aria-label={`Open ${project.title}`} className="rounded-full border border-gray-200 p-2 text-foreground transition hover:bg-gray-100"><ArrowUpRight size={19} /></a>
+                <div>
+                  <h3 className="text-xl font-semibold">{project.title}</h3>
+                  <p className="mt-2 leading-7 text-muted-foreground">{project.description}</p>
                 </div>
                 <div className="mt-5 flex flex-wrap gap-2">
                   {project.stack.map((item) => <span key={item} className="rounded-full border border-gray-300 px-3 py-1 text-xs font-medium text-gray-500">{item}</span>)}
