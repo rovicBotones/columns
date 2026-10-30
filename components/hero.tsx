@@ -1,6 +1,7 @@
 import Image from "next/image"
 import profilePicture from "@/asset/display_picture.png"
 import { ArrowDown, Github, Linkedin } from "lucide-react"
+import CvDialog from "@/components/cv-dialog"
 
 export default function Hero() {
   return (
@@ -13,8 +14,8 @@ export default function Hero() {
             Full-stack Software Engineer · AI Engineer · L3 Support Specialist
           </p>
           <h1 className="max-w-3xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl md:text-6xl">
-            I build useful software, from <span className="text-muted-foreground">backend to mobile.</span>
-          </h1>
+            I ship useful software end to end, from <span className="text-muted-foreground">backend services to mobile apps.</span>
+            </h1>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
             I’m Rovic, a full-stack engineer working across .NET, React Native, and React with Vite. I also bring hands-on L3 support experience to the systems I build and maintain.
           </p>
@@ -28,6 +29,7 @@ export default function Hero() {
             <a href="https://www.linkedin.com/in/rovicbotones/" target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium text-foreground transition hover:bg-muted">
               LinkedIn <Linkedin size={17} />
             </a>
+            <CvDialog />
           </div>
         </div>
         <div className="relative mx-auto w-full max-w-sm md:justify-self-end">

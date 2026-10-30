@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import nodemailer from "nodemailer"
 
 type ContactMessage = {
   name?: unknown
@@ -45,36 +46,40 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Please provide valid contact details and a message." }, { status: 400 })
   }
 
-  const apiKey = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL
+  const smtpUser = process.env.SMTP_USER
+  const smtpAppPassword = process.env.SMTP_APP_PASSWORD
   const recipient = process.env.CONTACT_EMAIL
 
-  if (!apiKey || !from || !recipient) {
+  if (!smtpUser || !smtpAppPassword || !recipient) {
     return NextResponse.json({ error: "Contact form is not configured." }, { status: 503 })
   }
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: smtpUser,
+        pass: smtpAppPassword.replace(/\s/g, ""),
       },
-      body: JSON.stringify({
-        from,
-        to: [recipient],
-        reply_to: email,
-        subject: `Portfolio message: ${subject}`,
-        text: `From: ${name} <${email}>\n\n${message}`,
-      }),
     })
 
-    if (!response.ok) {
-      return NextResponse.json({ error: "Email service could not send the message." }, { status: 502 })
-    }
+    await transporter.sendMail({
+      from: `Portfolio Contact <${smtpUser}>`,
+      to: recipient,
+      replyTo: email,
+      subject: `Portfolio message: ${subject}`,
+      text: `From: ${name} <${email}>\n\n${message}`,
+    })
 
     return NextResponse.json({ ok: true })
-  } catch {
-    return NextResponse.json({ error: "Email service is unavailable." }, { status: 502 })
+  } catch (error) {
+    const smtpError = error as { code?: string; responseCode?: number }
+    const errorMessage = smtpError.code === "EAUTH" || smtpError.responseCode === 535
+      ? "Gmail rejected the SMTP credentials. Check SMTP_USER and the Gmail app password."
+      : smtpError.code === "ETIMEDOUT" || smtpError.code === "ECONNECTION"
+        ? "Could not connect to Gmail SMTP. Check the server's network access and try again."
+        : `Gmail could not send the message${smtpError.responseCode ? ` (SMTP ${smtpError.responseCode})` : ""}. Check the account and recipient settings.`
+
+    return NextResponse.json({ error: errorMessage }, { status: 502 })
   }
 }
