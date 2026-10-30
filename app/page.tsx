@@ -5,6 +5,7 @@ import Services from "@/components/services"
 import Footer from "@/components/footer"
 import Works from "@/components/works"
 import ExperienceTimeline from "@/components/experience-timeline"
+import ContactForm from "@/components/contact-form"
 
 export default function Home() {
   return (
@@ -15,6 +16,7 @@ export default function Home() {
       <Works />
       <Services />
       <About />
+      <ContactForm />
       <Footer />
     </main>
   )
