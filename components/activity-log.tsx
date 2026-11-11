@@ -10,9 +10,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 
 type ActivityEntry = { _id?: string; at: string; event: string; durationMs?: number; deviceDetails?: string; location?: string }
 type ActivityResponse = { entries: ActivityEntry[]; totalOpenTimeMs: number }
+type AnalyticsPeriod = "daily" | "weekly" | "monthly" | "yearly"
+
+const ACTIONS = ["System accessed", "GitHub clicked", "LinkedIn clicked", "View CV clicked", "CV downloaded"] as const
 
 const SESSION_KEY = "portfolio-activity-session-start-v1"
 
@@ -22,6 +27,103 @@ function formatDuration(milliseconds: number) {
   const minutes = Math.floor((totalSeconds % 3600) / 60)
   const seconds = totalSeconds % 60
   return `${hours}h ${minutes}m ${seconds}s`
+}
+
+function startOfWeek(date: Date) {
+  const start = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7))
+  return start
+}
+
+function dateKey(date: Date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`
+}
+
+function periodKey(date: Date, period: AnalyticsPeriod) {
+  if (period === "daily") return dateKey(date)
+  if (period === "weekly") return dateKey(startOfWeek(date))
+  if (period === "monthly") return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`
+  return String(date.getFullYear())
+}
+
+function getAnalyticsRows(entries: ActivityEntry[], period: AnalyticsPeriod) {
+  const now = new Date()
+  const count = period === "daily" ? 7 : period === "weekly" ? 8 : period === "monthly" ? 12 : 5
+  const currentStart = period === "daily"
+    ? new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    : period === "weekly"
+      ? startOfWeek(now)
+      : period === "monthly"
+        ? new Date(now.getFullYear(), now.getMonth(), 1)
+        : new Date(now.getFullYear(), 0, 1)
+  const starts = Array.from({ length: count }, (_, index) => {
+    const date = new Date(currentStart)
+    if (period === "daily") date.setDate(date.getDate() - (count - index - 1))
+    if (period === "weekly") date.setDate(date.getDate() - (count - index - 1) * 7)
+    if (period === "monthly") date.setMonth(date.getMonth() - (count - index - 1))
+    if (period === "yearly") date.setFullYear(date.getFullYear() - (count - index - 1))
+    return date
+  })
+  const rows = starts.map((start) => ({
+    key: periodKey(start, period),
+    label: period === "daily"
+      ? start.toLocaleDateString(undefined, { month: "short", day: "numeric" })
+      : period === "weekly"
+        ? `${start.toLocaleDateString(undefined, { month: "short", day: "numeric" })} – ${new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6).toLocaleDateString(undefined, { month: "short", day: "numeric" })}`
+        : period === "monthly"
+          ? start.toLocaleDateString(undefined, { month: "long", year: "numeric" })
+          : String(start.getFullYear()),
+    counts: Object.fromEntries(ACTIONS.map((action) => [action, 0])) as Record<(typeof ACTIONS)[number], number>,
+    total: 0,
+    openTimeMs: 0,
+  }))
+  const byKey = new Map(rows.map((row) => [row.key, row]))
+
+  for (const entry of entries) {
+    const row = byKey.get(periodKey(new Date(entry.at), period))
+    if (!row) continue
+    if (entry.event === "System open time updated") {
+      row.openTimeMs += entry.durationMs ?? 0
+    } else if (ACTIONS.includes(entry.event as (typeof ACTIONS)[number])) {
+      row.counts[entry.event as (typeof ACTIONS)[number]] += 1
+      row.total += 1
+    }
+  }
+
+  return rows.reverse()
+}
+
+function ActionAnalytics({ entries, period }: { entries: ActivityEntry[]; period: AnalyticsPeriod }) {
+  const rows = getAnalyticsRows(entries, period)
+  const chartRows = rows.map((row) => ({ period: row.label, ...row.counts }))
+  const actionLabels: Record<(typeof ACTIONS)[number], string> = {
+    "System accessed": "Accesses",
+    "GitHub clicked": "GitHub",
+    "LinkedIn clicked": "LinkedIn",
+    "View CV clicked": "View CV",
+    "CV downloaded": "CV downloads",
+  }
+
+  return (
+    <div className="h-[360px] w-full" role="img" aria-label={`Bar chart showing action counts by ${period}`}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart data={chartRows} margin={{ top: 12, right: 12, left: -12, bottom: 4 }}>
+          <CartesianGrid stroke="var(--border)" vertical={false} />
+          <XAxis dataKey="period" tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={{ stroke: "var(--border)" }} />
+          <YAxis allowDecimals={false} tick={{ fill: "var(--muted-foreground)", fontSize: 12 }} tickLine={false} axisLine={false} />
+          <Tooltip
+            cursor={{ fill: "var(--muted)", opacity: 0.6 }}
+            contentStyle={{ backgroundColor: "var(--popover)", borderColor: "var(--border)", borderRadius: 12, color: "var(--popover-foreground)" }}
+            labelStyle={{ color: "var(--popover-foreground)" }}
+          />
+          <Legend wrapperStyle={{ color: "var(--muted-foreground)", fontSize: 12 }} />
+          {ACTIONS.map((action, index) => (
+            <Bar key={action} dataKey={action} name={actionLabels[action]} fill={`var(--chart-${index + 1})`} radius={[3, 3, 0, 0]} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  )
 }
 
 function sendEvent(event: string, durationMs?: number, keepalive = false) {
@@ -132,6 +234,7 @@ export function ActivityLogViewer() {
   const [currentSessionMs, setCurrentSessionMs] = useState(0)
   const [pageSize, setPageSize] = useState(10)
   const [page, setPage] = useState(0)
+  const [analyticsPeriod, setAnalyticsPeriod] = useState<AnalyticsPeriod>("daily")
 
   useEffect(() => {
     const updateDuration = () => {
@@ -168,6 +271,27 @@ export function ActivityLogViewer() {
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">Total time open: <span className="font-mono text-foreground">{formatDuration(data.totalOpenTimeMs + currentSessionMs)}</span></p>
+      {data.entries.length > 0 && (
+        <section aria-label="Action analytics" className="space-y-4">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight">Action analytics</h2>
+            <p className="mt-1 text-sm text-muted-foreground">Counts for each action across recent time periods.</p>
+          </div>
+          <Tabs value={analyticsPeriod} onValueChange={(value) => setAnalyticsPeriod(value as AnalyticsPeriod)}>
+            <TabsList aria-label="Analytics time period" className="w-full sm:w-fit">
+              <TabsTrigger value="daily">Daily</TabsTrigger>
+              <TabsTrigger value="weekly">Weekly</TabsTrigger>
+              <TabsTrigger value="monthly">Monthly</TabsTrigger>
+              <TabsTrigger value="yearly">Yearly</TabsTrigger>
+            </TabsList>
+            {(["daily", "weekly", "monthly", "yearly"] as const).map((period) => (
+              <TabsContent key={period} value={period} className="mt-4">
+                <ActionAnalytics entries={data.entries} period={period} />
+              </TabsContent>
+            ))}
+          </Tabs>
+        </section>
+      )}
       {data.entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
       ) : (
