@@ -130,6 +130,8 @@ export function ActivityLogViewer() {
   const [data, setData] = useState<ActivityResponse | null>(null)
   const [error, setError] = useState(false)
   const [currentSessionMs, setCurrentSessionMs] = useState(0)
+  const [pageSize, setPageSize] = useState(10)
+  const [page, setPage] = useState(0)
 
   useEffect(() => {
     const updateDuration = () => {
@@ -156,35 +158,64 @@ export function ActivityLogViewer() {
   if (error) return <p className="text-sm text-muted-foreground">Could not load the server activity log.</p>
   if (!data) return <p className="text-sm text-muted-foreground">Loading activity log…</p>
 
+  const totalRows = data.entries.length
+  const pageCount = Math.max(1, Math.ceil(totalRows / pageSize))
+  const currentPage = Math.min(page, pageCount - 1)
+  const firstRow = totalRows === 0 ? 0 : currentPage * pageSize + 1
+  const lastRow = Math.min((currentPage + 1) * pageSize, totalRows)
+  const visibleEntries = data.entries.slice(currentPage * pageSize, (currentPage + 1) * pageSize)
+
   return (
     <div className="space-y-6">
       <p className="text-sm text-muted-foreground">Total time open: <span className="font-mono text-foreground">{formatDuration(data.totalOpenTimeMs + currentSessionMs)}</span></p>
       {data.entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
       ) : (
-        <Table>
-          <TableCaption>Most recent events first. Location is estimated from the visitor’s IP region.</TableCaption>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Time</TableHead>
-              <TableHead>Activity</TableHead>
-              <TableHead>Device</TableHead>
-              <TableHead>Approx. location</TableHead>
-              <TableHead>Open time</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {data.entries.map((entry, index) => (
-              <TableRow key={entry._id ?? `${entry.at}-${index}`}>
-                <TableCell><time className="font-mono text-xs text-muted-foreground" dateTime={entry.at}>{new Date(entry.at).toLocaleString()}</time></TableCell>
-                <TableCell>{entry.event}</TableCell>
-                <TableCell>{entry.deviceDetails ?? "Unavailable"}</TableCell>
-                <TableCell>{entry.location ?? "Unavailable"}</TableCell>
-                <TableCell className="font-mono">{entry.durationMs ? formatDuration(entry.durationMs) : "—"}</TableCell>
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              Rows per page
+              <select
+                value={pageSize}
+                onChange={(event) => {
+                  setPageSize(Number(event.target.value))
+                  setPage(0)
+                }}
+                className="rounded-md border border-border bg-background px-2 py-1 text-foreground"
+              >
+                {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
+            </label>
+            <div className="flex items-center gap-3 text-sm">
+              <span className="font-mono text-xs text-muted-foreground" aria-live="polite">{firstRow}–{lastRow} of {totalRows}</span>
+              <button type="button" onClick={() => setPage(currentPage - 1)} disabled={currentPage === 0} className="rounded-md border border-border px-3 py-1.5 transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Previous</button>
+              <button type="button" onClick={() => setPage(currentPage + 1)} disabled={currentPage >= pageCount - 1} className="rounded-md border border-border px-3 py-1.5 transition hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40">Next</button>
+            </div>
+          </div>
+          <Table>
+            <TableCaption>Most recent events first. Location is estimated from the visitor’s IP region.</TableCaption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Time</TableHead>
+                <TableHead>Activity</TableHead>
+                <TableHead>Device</TableHead>
+                <TableHead>Approx. location</TableHead>
+                <TableHead>Open time</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {visibleEntries.map((entry, index) => (
+                <TableRow key={entry._id ?? `${entry.at}-${index}`}>
+                  <TableCell><time className="font-mono text-xs text-muted-foreground" dateTime={entry.at}>{new Date(entry.at).toLocaleString()}</time></TableCell>
+                  <TableCell>{entry.event}</TableCell>
+                  <TableCell>{entry.deviceDetails ?? "Unavailable"}</TableCell>
+                  <TableCell>{entry.location ?? "Unavailable"}</TableCell>
+                  <TableCell className="font-mono">{entry.durationMs ? formatDuration(entry.durationMs) : "—"}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </>
       )}
     </div>
   )
