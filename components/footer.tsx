@@ -1,6 +1,3 @@
-import { ActivityLogDownload } from "@/components/activity-log"
-import Link from "next/link"
-
 export default function Footer() {
   return (
     <footer className="border-t border-white/10 bg-[#0c0c0f] py-6 text-gray-400">
@@ -8,8 +5,6 @@ export default function Footer() {
         <p className="font-medium text-white">Rovic Joy Botones</p>
         <p>Full-stack software engineer · .NET · React Native · React</p>
         <p>© {new Date().getFullYear()}</p>
-        <ActivityLogDownload />
-        <Link href="/statusservice" className="text-xs font-mono uppercase tracking-wider underline underline-offset-4 opacity-80 transition hover:opacity-100">System activity</Link>
       </div>
     </footer>
   )
