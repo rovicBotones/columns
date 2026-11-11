@@ -13,5 +13,7 @@ export default defineSchema({
     ),
     at: v.number(),
     durationMs: v.optional(v.number()),
+    deviceDetails: v.optional(v.string()),
+    location: v.optional(v.string()),
   }).index("by_at", ["at"]),
 })

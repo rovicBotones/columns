@@ -1,8 +1,17 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
-type ActivityEntry = { at: string; event: string; durationMs?: number }
+type ActivityEntry = { _id?: string; at: string; event: string; durationMs?: number; deviceDetails?: string; location?: string }
 type ActivityResponse = { entries: ActivityEntry[]; totalOpenTimeMs: number }
 
 const SESSION_KEY = "portfolio-activity-session-start-v1"
@@ -153,14 +162,29 @@ export function ActivityLogViewer() {
       {data.entries.length === 0 ? (
         <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
       ) : (
-        <ol className="divide-y divide-border border-y border-border">
-          {data.entries.map((entry, index) => (
-            <li key={`${entry.at}-${index}`} className="flex flex-col gap-1 py-3 sm:flex-row sm:items-baseline sm:justify-between">
-              <span className="text-sm">{entry.event}{entry.durationMs ? ` · ${formatDuration(entry.durationMs)}` : ""}</span>
-              <time className="font-mono text-xs text-muted-foreground" dateTime={entry.at}>{new Date(entry.at).toLocaleString()}</time>
-            </li>
-          ))}
-        </ol>
+        <Table>
+          <TableCaption>Most recent events first. Location is estimated from the visitor’s IP region.</TableCaption>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Time</TableHead>
+              <TableHead>Activity</TableHead>
+              <TableHead>Device</TableHead>
+              <TableHead>Approx. location</TableHead>
+              <TableHead>Open time</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {data.entries.map((entry, index) => (
+              <TableRow key={entry._id ?? `${entry.at}-${index}`}>
+                <TableCell><time className="font-mono text-xs text-muted-foreground" dateTime={entry.at}>{new Date(entry.at).toLocaleString()}</time></TableCell>
+                <TableCell>{entry.event}</TableCell>
+                <TableCell>{entry.deviceDetails ?? "Unavailable"}</TableCell>
+                <TableCell>{entry.location ?? "Unavailable"}</TableCell>
+                <TableCell className="font-mono">{entry.durationMs ? formatDuration(entry.durationMs) : "—"}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   )

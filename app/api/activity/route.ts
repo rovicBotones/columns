@@ -24,6 +24,45 @@ function getConvexClient() {
   return new ConvexHttpClient(url)
 }
 
+function getDeviceDetails(userAgent: string | null) {
+  const ua = userAgent ?? ""
+  const device = /ipad|tablet|kindle|silk/i.test(ua) || (/android/i.test(ua) && !/mobile/i.test(ua))
+    ? "Tablet"
+    : /mobile|iphone|ipod|android/i.test(ua)
+      ? "Mobile"
+      : "Desktop"
+  const browser = /edg\//i.test(ua) ? "Edge"
+    : /opr\//i.test(ua) ? "Opera"
+      : /firefox|fxios/i.test(ua) ? "Firefox"
+        : /chrome|crios/i.test(ua) ? "Chrome"
+          : /safari/i.test(ua) ? "Safari"
+            : "Unknown browser"
+  const operatingSystem = /windows/i.test(ua) ? "Windows"
+    : /android/i.test(ua) ? "Android"
+      : /iphone|ipad|ipod/i.test(ua) ? "iOS"
+        : /macintosh|mac os/i.test(ua) ? "macOS"
+          : /linux/i.test(ua) ? "Linux"
+            : "Unknown OS"
+  return `${device} · ${operatingSystem} · ${browser}`
+}
+
+function getLocation(request: Request) {
+  const headers = request.headers
+  const cityHeader = headers.get("x-vercel-ip-city") || headers.get("cf-ipcity")
+  let city = cityHeader
+  if (cityHeader) {
+    try {
+      city = decodeURIComponent(cityHeader)
+    } catch {
+      city = cityHeader
+    }
+  }
+  const region = headers.get("x-vercel-ip-country-region") || headers.get("cf-region")
+  const country = headers.get("x-vercel-ip-country") || headers.get("cf-ipcountry")
+  const parts = [city, region, country].filter(Boolean)
+  return parts.length ? parts.join(", ") : "Unavailable"
+}
+
 export async function GET() {
   try {
     const log = await getConvexClient().query(api.activity.getActivityLog, {})
@@ -49,6 +88,8 @@ export async function POST(request: Request) {
     await getConvexClient().mutation(api.activity.recordActivity, {
       event: body.event,
       ...(durationMs ? { durationMs } : {}),
+      deviceDetails: getDeviceDetails(request.headers.get("user-agent")),
+      location: getLocation(request),
     })
     return NextResponse.json({ ok: true }, { status: 201 })
   } catch {

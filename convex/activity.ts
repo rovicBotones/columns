@@ -12,6 +12,8 @@ export const recordActivity = mutation({
       v.literal("System open time updated"),
     ),
     durationMs: v.optional(v.number()),
+    deviceDetails: v.optional(v.string()),
+    location: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     await ctx.db.insert("activityLog", {
