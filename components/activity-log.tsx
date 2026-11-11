@@ -146,22 +146,19 @@ export function ActivityTracker() {
     }
 
     let isVisible = true
-    const recordSessionTime = (keepalive = false) => {
+    const recordSessionTime = () => {
       if (!isVisible) return
-      const startedAt = Number(sessionStorage.getItem(SESSION_KEY))
-      const elapsed = startedAt ? Math.max(0, Date.now() - startedAt) : 0
       isVisible = false
-      if (elapsed > 0) void sendEvent("System open time updated", elapsed, keepalive)
     }
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") recordSessionTime(true)
+      if (document.visibilityState === "hidden") recordSessionTime()
       else if (!isVisible) {
         isVisible = true
         sessionStorage.setItem(SESSION_KEY, String(Date.now()))
       }
     }
-    const onPageHide = () => recordSessionTime(true)
+    const onPageHide = () => recordSessionTime()
     const onClick = (event: MouseEvent) => {
       const target = event.target
       if (!(target instanceof Element)) return

@@ -10,7 +10,6 @@ const activityEvents = [
   "LinkedIn clicked",
   "View CV clicked",
   "CV downloaded",
-  "System open time updated",
 ] as const
 type ActivityEvent = (typeof activityEvents)[number]
 
