@@ -57,7 +57,7 @@ export default function CvDialog() {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <button type="button" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium text-foreground transition hover:bg-muted">
+        <button type="button" data-activity-event="View CV clicked" className="inline-flex items-center gap-2 rounded-lg border border-border px-5 py-3 font-medium text-foreground transition hover:bg-muted">
           View CV <FileText size={17} aria-hidden="true" />
         </button>
       </DialogTrigger>
@@ -134,7 +134,7 @@ export default function CvDialog() {
           </div>
         </div>
         <DialogFooter className="border-t border-border px-5 py-4 sm:px-8">
-          <a href="/rovic-joy-botones-cv.pdf" download="Rovic-Joy-Botones-CV.pdf" className="inline-flex items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:opacity-80">
+          <a href="/rovic-joy-botones-cv.pdf" download="Rovic-Joy-Botones-CV.pdf" data-activity-event="CV downloaded" className="inline-flex items-center justify-center gap-2 rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background transition hover:opacity-80">
             Download PDF <Download size={16} aria-hidden="true" />
           </a>
         </DialogFooter>
